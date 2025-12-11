@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "Rsgjj3EXTi4=",
+  "success": true,
+  "projectFilePath": "/Users/darazdanok/Desktop/2 курс/KPO/HSE_Anticheating/HSE_Anticheating/FileAnalysis.Core/FileAnalysis.Core.csproj",
+  "expectedPackageFiles": [
+    "/Users/darazdanok/.nuget/packages/microsoft.netcore.app.ref/8.0.22/microsoft.netcore.app.ref.8.0.22.nupkg.sha512",
+    "/Users/darazdanok/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.22/microsoft.aspnetcore.app.ref.8.0.22.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,38 @@
+﻿services:
+  filestoring-api:
+    build:
+      context: .
+      dockerfile: FileStoring.Api/Dockerfile
+    container_name: filestoring-api
+    ports:
+      - "5001:80"
+    environment:
+      - FileStorage__BasePath=/AppFiles
+    volumes:
+      - filestoring-data:/AppFiles
+
+  fileanalysis-api:
+    build:
+      context: .
+      dockerfile: FileAnalysis.Api/Dockerfile
+    container_name: fileanalysis-api
+    ports:
+      - "5002:80"
+    environment:
+      - FileStoringApi__Url=http://filestoring-api/
+
+  gateway-api:
+    build:
+      context: .
+      dockerfile: Gateway.Api/Dockerfile
+    container_name: gateway-api
+    ports:
+      - "5050:80"
+    environment:
+
+      - FileStoringApi__Url=http://filestoring-api/
+      - FileAnalysisApi__Url=http://fileanalysis-api/
+
+volumes:
+  filestoring-data:
+  wordcloud-data:
