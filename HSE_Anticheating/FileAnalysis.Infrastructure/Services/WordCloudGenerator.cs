@@ -18,7 +18,7 @@ namespace FileAnalysis.Infrastructure.Services
         /// <summary>
         /// Конструкор WordCloudGenerator
         /// </summary>
-        /// <param name="httpClient"></param>
+        /// <param name="httpClient"> //http - клиент</param>
         public WordCloudGenerator(HttpClient httpClient)
         {
             _http = httpClient;

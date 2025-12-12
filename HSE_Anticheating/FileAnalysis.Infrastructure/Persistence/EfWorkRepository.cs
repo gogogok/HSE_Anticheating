@@ -1,71 +1,63 @@
 using FileAnalysis.Core.Application.Interfaces;
 using FileAnalysis.Core.Application.Models;
 using FileAnalysis.Core.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace FileAnalysis.Infrastructure.Persistence
 {
     /// <summary>
-    /// Хранилище работ
+    ///  Класс для работы с БД работ
     /// </summary>
-    public class WorkRepository : IWorkRepository
+    public class EfWorkRepository : IWorkRepository
     {
         /// <summary>
-        /// База данных
+        ///БД
         /// </summary>
-        private readonly JsonDatabase _db;
-        
-        /// <summary>
-        /// Список работы в хранилище (кеш)
-        /// </summary>
-        private List<Work> _cache;
+        private readonly FileAnalysisDbContext _db;
 
         /// <summary>
-        /// Конструктор WorkRepository
+        /// Конструктор EfWorkRepository
         /// </summary>
         /// <param name="db">БД</param>
-        public WorkRepository(JsonDatabase db)
+        public EfWorkRepository(FileAnalysisDbContext db)
         {
             _db = db;
-            _cache = _db.LoadWorks();
         }
 
         /// <summary>
-        /// Метод добавления работы в хранилище
+        /// Добавление работы в БД
         /// </summary>
         /// <param name="work">Работа, которую нужно добавить</param>
         /// <param name="ct">Токен, позволяющий прервать асинхронную операцию</param>
-        public Task AddAsync(Work work, CancellationToken ct = default)
+        public async Task AddAsync(Work work, CancellationToken ct = default)
         {
-            _cache.Add(work);
-            _db.SaveWorks(_cache);
-            return Task.CompletedTask;
+            _db.Works.Add(work);
+            await _db.SaveChangesAsync(ct);
         }
-        
 
         /// <summary>
-        /// Получение работ студента
+        /// Получение списка работ студента по его ID
         /// </summary>
         /// <param name="studentId">ID студента</param>
         /// <param name="ct">Токен, позволяющий прервать асинхронную операцию</param>
-        /// <returns>Работы нудного студента</returns>
+        /// <returns>Список работ студента</returns>
         public Task<List<Work>> GetByStudentAsync(string studentId, CancellationToken ct = default)
         {
-            List<Work> result = _cache
+            return _db.Works
+                .Include(w => w.Reports)
                 .Where(w => w.StudentId == studentId)
-                .ToList();
-
-            return Task.FromResult(result);
+                .ToListAsync(ct);
         }
 
         /// <summary>
-        /// Получение полного списка работ по фильтру
+        /// Получение списка работ по фильтру
         /// </summary>
-        /// <param name="filter">Фильтр работ</param>
+        /// <param name="filter">Фильтр для отбора работ</param>
         /// <param name="ct">Токен, позволяющий прервать асинхронную операцию</param>
-        /// <returns>Список работ в хранилище</returns>
+        /// <returns>Список работ по фильтру</returns>
         public Task<List<Work>> GetAllAsync(WorkFilter filter, CancellationToken ct = default)
         {
-            IEnumerable<Work> query = _cache;
+            IQueryable<Work> query = _db.Works.Include(w => w.Reports);
 
             if (!string.IsNullOrWhiteSpace(filter.StudentId))
             {
@@ -77,33 +69,32 @@ namespace FileAnalysis.Infrastructure.Persistence
                 query = query.Where(w => w.AssignmentId == filter.AssignmentId);
             }
 
-            if (filter.OnlyPlagiarism == true || filter.OnlyPlagiarism == false)
+            if (filter.OnlyPlagiarism == true)
             {
                 query = query.Where(w => w.Reports.Any(r => r.IsPlagiarism));
             }
 
-            return Task.FromResult(query.ToList());
+            return query.ToListAsync(ct);
         }
 
         /// <summary>
-        /// Получаем список всх работ других студентов на эту тему
+        /// Получение работ по заданной теме других студентов
         /// </summary>
         /// <param name="assignmentId">ID темы</param>
-        /// <param name="studentId">D студента, чью работу мы будем сверять</param>
+        /// <param name="studentId">ID студента</param>
         /// <param name="ct">Токен, позволяющий прервать асинхронную операцию</param>
-        /// <returns>Список работ по теме</returns>
+        /// <returns>Список работ</returns>
         public Task<List<Work>> GetPreviousForAssignmentAsync(
             string assignmentId,
             string studentId,
             CancellationToken ct = default)
         {
-            List<Work> result = _cache
+            return _db.Works
+                .Include(w => w.Reports)
                 .Where(w =>
                     w.AssignmentId == assignmentId &&
                     w.StudentId != studentId)
-                .ToList();
-
-            return Task.FromResult(result);
+                .ToListAsync(ct);
         }
     }
 }

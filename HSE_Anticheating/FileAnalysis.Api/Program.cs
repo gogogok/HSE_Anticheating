@@ -1,6 +1,7 @@
 using FileAnalysis.Api.DependencyInjection;
 using FileAnalysis.Core.Domain.Services;
 using FileAnalysis.Infrastructure.DependencyInjection;
+using FileAnalysis.Infrastructure.Persistence;
 using FileAnalysis.Infrastructure.Services;
 using Microsoft.Extensions.FileProviders;
 
@@ -16,9 +17,15 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 //Регистрация бизнес-сервисов
 builder.Services.AddApiServices();
-builder.Services.AddSingleton<IWordCloudGenerator, WordCloudGenerator>();
 
 WebApplication app = builder.Build();
+
+//создаём таблицы
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    FileAnalysisDbContext db = scope.ServiceProvider.GetRequiredService<FileAnalysisDbContext>();
+    db.Database.EnsureCreated();
+}
 
 string wordCloudFolder = Path.Combine(AppContext.BaseDirectory, "WordClouds");
 Directory.CreateDirectory(wordCloudFolder);

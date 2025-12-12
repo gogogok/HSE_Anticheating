@@ -20,6 +20,9 @@
       - "5002:80"
     environment:
       - FileStoringApi__Url=http://filestoring-api/
+    volumes:
+      - fileanalysis-data:/app/data
+
 
   gateway-api:
     build:
@@ -29,10 +32,10 @@
     ports:
       - "5050:80"
     environment:
-
       - FileStoringApi__Url=http://filestoring-api/
       - FileAnalysisApi__Url=http://fileanalysis-api/
 
 volumes:
   filestoring-data:
   wordcloud-data:
+  fileanalysis-data:

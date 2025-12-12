@@ -5,6 +5,7 @@ using FileAnalysis.Infrastructure.Persistence;
 using FileAnalysis.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 
 namespace FileAnalysis.Infrastructure.DependencyInjection
 {
@@ -17,14 +18,14 @@ namespace FileAnalysis.Infrastructure.DependencyInjection
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            //добавляем что-то типо базы данных
-            services.AddSingleton(new JsonDatabase("AppData"));
+            services.AddDbContext<FileAnalysisDbContext>(options =>
+                options.UseSqlite("Data Source=data/fileanalysis.db"));
 
-            services.AddSingleton<IWorkRepository, WorkRepository>();
-            services.AddSingleton<IReportRepository, ReportRepository>();
+            services.AddScoped<IWorkRepository, EfWorkRepository>();
+            services.AddScoped<IReportRepository, EfReportRepository>();
 
-            services.AddSingleton<IPlagiarismDetector, PlagiarismDetector>();
-            services.AddSingleton<IWordCloudGenerator, WordCloudGenerator>();
+            services.AddScoped<IPlagiarismDetector, PlagiarismDetector>();
+            services.AddScoped<IWordCloudGenerator, WordCloudGenerator>();
 
             //регистрация клиента хранилища
             services.AddHttpClient<IFileContentProvider, FileContentProvider>(client =>

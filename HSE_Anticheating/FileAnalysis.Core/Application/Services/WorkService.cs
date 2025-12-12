@@ -87,7 +87,6 @@ namespace FileAnalysis.Core.Application.Services
 
             //сохраняем в БД
             await _workRepository.AddAsync(work, ct);
-            await _reportRepository.AddAsync(report, ct);
 
             return work;
         }
